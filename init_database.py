@@ -24,6 +24,9 @@ def init_database():
         )
     ''')
     
+    # Clear existing data to allow re-initialization
+    cursor.execute('DELETE FROM tickets')
+    
     # Insert sample data
     sample_tickets = [
         ('TKT-001', 'John Smith', 'Open', 'High', '2024-01-15'),

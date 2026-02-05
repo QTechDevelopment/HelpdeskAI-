@@ -7,6 +7,9 @@ import pandas as pd
 import plotly.express as px
 import os
 
+# Constants
+DB_PATH = os.path.join(os.path.dirname(__file__), 'helpdesk.db')
+
 # Page configuration
 st.set_page_config(
     page_title="HelpdeskAI Dashboard",
@@ -17,28 +20,25 @@ st.set_page_config(
 
 def get_db_connection():
     """Create a connection to the SQLite database."""
-    db_path = os.path.join(os.path.dirname(__file__), 'helpdesk.db')
-    return sqlite3.connect(db_path)
+    return sqlite3.connect(DB_PATH)
 
 def load_tickets_data():
     """Load ticket data from the database."""
-    conn = get_db_connection()
-    query = "SELECT * FROM tickets"
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    with get_db_connection() as conn:
+        query = "SELECT * FROM tickets"
+        df = pd.read_sql_query(query, conn)
     return df
 
 def get_tickets_per_technician():
     """Get ticket count per technician."""
-    conn = get_db_connection()
-    query = """
-        SELECT technician, COUNT(*) as ticket_count
-        FROM tickets
-        GROUP BY technician
-        ORDER BY ticket_count DESC
-    """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    with get_db_connection() as conn:
+        query = """
+            SELECT technician, COUNT(*) as ticket_count
+            FROM tickets
+            GROUP BY technician
+            ORDER BY ticket_count DESC
+        """
+        df = pd.read_sql_query(query, conn)
     return df
 
 # Sidebar navigation
@@ -59,8 +59,7 @@ with tab1:
     st.header("Operational Overview")
     
     # Check if database exists
-    db_path = os.path.join(os.path.dirname(__file__), 'helpdesk.db')
-    if not os.path.exists(db_path):
+    if not os.path.exists(DB_PATH):
         st.warning("⚠️ Database not found. Please run `python init_database.py` to initialize the database.")
     else:
         try:
